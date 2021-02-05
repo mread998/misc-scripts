@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# This is by bootstrap install scritp for a my deploy server using CentOS 7 as a base
+# Example done with KMV machine
+#
+# Basic installtion of tools
+yum update -y && \ 
+yum install -y git vim zip unzip bash-completion && \
+
+# Install Docker and docker compose
+
+curl -fsSL https://get.docker.com -o get-docker.sh && \
+sh get-docker.sh && \
+sudo curl -L "https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && \
+sudo chmod +x /usr/local/bin/docker-compose && \
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose && \
+systemctl start docker && \
+systemctl enable docker && \
+
+# add user jenkins with uid of 1000, set password, add to docker group
+useradd -u 1000 jenkins && \
+echo "F1r2i3d4a5y6" | passwd jenkins --stdin && \
+usermod -aG docker jenkins && \
+
+# Install Cloud Tools
+#
+# Amazon Cloud CLI v2
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+unzip awscliv2.zip && \
+sudo ./aws/install && \
+
+# Rackspace Cloud CLI
+curl "https://ec4a542dbf90c03b9f75-b342aba65414ad802720b41e8159cf45.ssl.cf5.rackcdn.com/1.2/Linux/amd64/rac"k -o "rack"  && \
+chmod +x rack  && \
+mv rack /usr/local/bin/rack  && \
+
+# Azure Cloud CLI
+sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+echo -e "[azure-cli] \
+name=Azure CLI \
+baseurl=https://packages.microsoft.com/yumrepos/azure-cli \
+enabled=1 \
+gpgcheck=1 \
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/azure-cli.repo && \
+sudo yum -y install azure-cli &&\
+
+# Google Cloud CLI
+echo -e "[google-cloud-sdk]
+name=Google Cloud SDK
+baseurl=https://packages.cloud.google.com/yum/repos/cloud-sdk-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg 
+       https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+install google-cloud-sdk
+
+passwd jenkins
